@@ -518,7 +518,7 @@
 		"fatload mmc 0:1 ${fuse_addr} images/${LINUXBOOTLOADER}; " \
 		"if test $? -eq 0; then " \
 			"if test ${filesize} -gt 0; then " \
-				"onenand erase 0 ${filesize};onenand write ${fuse_addr} 0 ${filesize}; " \
+				"onenand erase 0 100000;onenand write ${fuse_addr} 0 ${filesize}; " \
 				"setenv fuse ok; " \
 			"fi; " \
 		"fi; " \
@@ -532,7 +532,7 @@
 		"fatload mmc 0:1 ${fuse_addr} images/${LINUXKERNEL}; " \
 		"if test $? -eq 0; then " \
 			"if test ${filesize} -gt 0; then " \
-				"onenand erase 600000 ${filesize};onenand write ${fuse_addr} 600000 ${filesize}; " \
+				"onenand erase 600000 500000;onenand write ${fuse_addr} 600000 ${filesize}; " \
 				"setenv fuse ok; " \
 			"fi; " \
 		"fi; " \
@@ -547,7 +547,7 @@
 		"if test $? -eq 0; then " \
 			"if test ${filesize} -gt 0; then " \
 				"if test 0x${filesize} -lt 0x17600000; then " \
-					"onenand erase e00000 ${filesize};onenand write.yaffs ${fuse_addr} e00000 ${filesize}; " \
+					"onenand erase e00000;onenand write.yaffs ${fuse_addr} e00000 ${filesize}; " \
 					"setenv fuse ok; " \
 				"fi; " \
 			"fi; " \
@@ -586,7 +586,7 @@
 	"do_sd=fatload mmc 0:1 40000000 images/FriendlyARM.ini; if test ${ACTION} = Install; then run fuse_onenand; else run mmcboot; fi\0" \
 	"boot_kernel=" \
 		"if test -n ${LINUXUINITRD}; then bootm 30008000 ${initrd_addr}:${initrd_size}; else bootm 30008000; fi\0" \
-	"do_nand=run nandargs; onenand read 30008000 600000 600000; bootm 30008000\0" \
+	"do_nand=run nandargs; onenand read 30008000 600000 500000; bootm 30008000\0" \
 	"fuse_uboot="CONFIG_FUSE_UBOOT"\0" \
 	"fuse_kernel="CONFIG_FUSE_KERNEL"\0" \
 	"fuse_rootfs="CONFIG_FUSE_ROOTFS"\0" \
