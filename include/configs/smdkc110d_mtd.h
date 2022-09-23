@@ -504,6 +504,12 @@
 #define CFG_LCD_NONAME1	// for V210 - wide LCD
 #define CFG_LCD_FBUFFER				(0x48000000)
 
+/* Partitions */
+#define CFG_KERNEL_ADDR		"600000"
+#define CFG_KERNEL_SIZE		"500000"
+#define CFG_ROOTFS_ADDR		"e00000"
+#define CFG_MTDBLK_ROOT		"mtdblock4"
+
 #define CONFIG_BOOTDELAY	3
 #if defined(CFG_FASTBOOT_ONENANDBSP)
 #define CONFIG_BOOTCOMMAND	"if test $bootdev = sd; then run do_sd; else run do_nand;fi"
@@ -532,7 +538,8 @@
 		"fatload mmc 0:1 ${fuse_addr} images/${LINUXKERNEL}; " \
 		"if test $? -eq 0; then " \
 			"if test ${filesize} -gt 0; then " \
-				"onenand erase 600000 500000;onenand write ${fuse_addr} 600000 ${filesize}; " \
+				"onenand erase " CFG_KERNEL_ADDR " " CFG_KERNEL_SIZE ";" \
+				"onenand write ${fuse_addr} " CFG_KERNEL_ADDR " ${filesize}; " \
 				"setenv fuse ok; " \
 			"fi; " \
 		"fi; " \
@@ -547,7 +554,8 @@
 		"if test $? -eq 0; then " \
 			"if test ${filesize} -gt 0; then " \
 				"if test 0x${filesize} -lt 0x17600000; then " \
-					"onenand erase e00000;onenand write.yaffs ${fuse_addr} e00000 ${filesize}; " \
+					"onenand erase " CFG_ROOTFS_ADDR ";" \
+					"onenand write.yaffs ${fuse_addr} " CFG_ROOTFS_ADDR " ${filesize}; " \
 					"setenv fuse ok; " \
 				"fi; " \
 			"fi; " \
@@ -573,10 +581,10 @@
 	"fi;"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"rootdev=mtdblock4\0" \
+	"rootdev=" CFG_MTDBLK_ROOT "\0" \
 	"roottype=yaffs2\0" \
 	"mmcargs=setenv bootargs console=ttySAC0,115200n8 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait init=/sbin/init data=/dev/mmcblk0p3 loglevel=7 consoleblank=0 lcd=${lcd}\0" \
-	"nandargs=setenv bootargs console=ttySAC0,115200 androidboot.console=ttySAC0 no_console_suspend root=/dev/mtdblock4 rootfstype=yaffs2 rootdelay=1 init=/linuxrc lcd=${lcd}\0" \
+	"nandargs=setenv bootargs console=ttySAC0,115200 androidboot.console=ttySAC0 no_console_suspend root=/dev/${rootdev} rootfstype=yaffs2 rootdelay=1 init=/linuxrc lcd=${lcd}\0" \
 	"initrd_addr=0x34000000\0" \
 	"initrd_size=0\0" \
 	"loadkernel=fatload mmc 0:1 30008000 images/${LINUXKERNEL}\0" \
@@ -586,7 +594,10 @@
 	"do_sd=fatload mmc 0:1 40000000 images/FriendlyARM.ini; if test ${ACTION} = Install; then run fuse_onenand; else run mmcboot; fi\0" \
 	"boot_kernel=" \
 		"if test -n ${LINUXUINITRD}; then bootm 30008000 ${initrd_addr}:${initrd_size}; else bootm 30008000; fi\0" \
-	"do_nand=run nandargs; onenand read 30008000 600000 500000; bootm 30008000\0" \
+	"do_nand=" \
+		"run nandargs; " \
+		"onenand read 30008000 " CFG_KERNEL_ADDR " " CFG_KERNEL_SIZE "; " \
+		"bootm 30008000\0" \
 	"fuse_uboot="CONFIG_FUSE_UBOOT"\0" \
 	"fuse_kernel="CONFIG_FUSE_KERNEL"\0" \
 	"fuse_rootfs="CONFIG_FUSE_ROOTFS"\0" \
