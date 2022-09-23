@@ -1,0 +1,15 @@
+#currently we ignore all these directories
+*.a
+*.o
+*.depend
+*.dep
+u-boot.bin
+u-boot.dis
+u-boot.map
+u-boot.srec
+System.map
+u-boot
+/tools
+/u-boot-onenand.bin
+/u-boot-sd.bin
+/.scmversion
