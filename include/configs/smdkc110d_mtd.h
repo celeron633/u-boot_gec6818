@@ -587,11 +587,13 @@
 	"nandargs=setenv bootargs console=ttySAC0,115200 androidboot.console=ttySAC0 no_console_suspend root=/dev/${rootdev} rootfstype=yaffs2 rootdelay=1 init=/linuxrc lcd=${lcd}\0" \
 	"initrd_addr=0x34000000\0" \
 	"initrd_size=0\0" \
-	"loadkernel=fatload mmc 0:1 30008000 images/${LINUXKERNEL}\0" \
+	"loadkernel=fatload mmc 0:1 30008000 images/${LINUXKERNELRUN}\0" \
 	"loadinitrd=" \
 		"if test -n ${LINUXUINITRD}; then fatload mmc 0:1 ${initrd_addr} images/${LINUXUINITRD}; setenv initrd_size 0x${filesize}; fi\0" \
 	"mmcboot=run mmcargs; run loadkernel; run loadinitrd; run boot_kernel\0" \
-	"do_sd=fatload mmc 0:1 40000000 images/FriendlyARM.ini; if test ${ACTION} = Install; then run fuse_onenand; else run mmcboot; fi\0" \
+	"do_sd=fatload mmc 0:1 40000000 images/FriendlyARM.ini; " \
+		"if test $? -ne 0; then lcd Load\\ images/FriendlyARM.ini\\ failed; " \
+		"elif test _${ACTION} = _Install; then run fuse_onenand; else run mmcboot; fi; \0" \
 	"boot_kernel=" \
 		"if test -n ${LINUXUINITRD}; then bootm 30008000 ${initrd_addr}:${initrd_size}; else bootm 30008000; fi\0" \
 	"do_nand=" \
