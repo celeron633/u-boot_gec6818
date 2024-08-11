@@ -903,7 +903,11 @@ fip-nonsecure.bin: u-boot.bin tools
 	@if [ -e "$@" ]; then rm -f $@; fi
 	$(Q)$(FIP_CREATE) --dump --bl33 $< $@
 
+ifdef CONFIG_TARGET_GEC6818
+NSIH ?= tools/nexell/nsih/gec6818.txt
+else
 NSIH ?= tools/nexell/nsih/nanopi3.txt
+endif
 BINGEN_FLAGS := -l 0x7df00000 -e 0x00000000 -n $(NSIH)
 
 fip-nonsecure.img: fip-nonsecure.bin $(NSIH)
