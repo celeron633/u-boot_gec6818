@@ -34,7 +34,6 @@
 #include <u-boot/md5.h>
 
 #include "hwrev.h"
-#include "onewire.h"
 #include "nxp-fb.h"
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -82,27 +81,17 @@ static inline void bd_pwm_config_gpio(int ch)
 
 static void bd_backlight_off(void)
 {
-#ifdef CONFIG_ONEWIRE
-	onewire_set_backlight(0);
-
-#elif defined(CONFIG_BACKLIGHT_CH)
 	bd_pwm_config_gpio(CONFIG_BACKLIGHT_CH);
-#endif
 }
 
 static void bd_backlight_on(void)
 {
-#ifdef CONFIG_ONEWIRE
-	onewire_set_backlight(127);
-
-#elif defined(CONFIG_BACKLIGHT_CH)
 	/* pwm backlight ON: HIGH, ON: LOW */
 	pwm_init(CONFIG_BACKLIGHT_CH,
 		CONFIG_BACKLIGHT_DIV, CONFIG_BACKLIGHT_INV);
 	pwm_config(CONFIG_BACKLIGHT_CH,
 		TO_DUTY_NS(CONFIG_BACKLIGHT_DUTY, CONFIG_BACKLIGHT_HZ),
 		TO_PERIOD_NS(CONFIG_BACKLIGHT_HZ));
-#endif
 }
 
 static void bd_lcd_config_gpio(void)
@@ -241,22 +230,12 @@ static void bd_bootdev_init(void)
 	}
 }
 
-static void bd_onewire_init(void)
-{
-	unsigned char lcd;
-	unsigned short fw_ver;
-
-	onewire_init();
-	onewire_get_info(&lcd, &fw_ver);
-}
-
 static void bd_lcd_init(void)
 {
 	struct nxp_lcd *cfg;
-	int id;
+	int id = -1;
 	int ret;
 
-	id = onewire_get_lcd_id();
 	/* -1: onwire probe failed
 	 *  0: bad
 	 * >0: identified */
@@ -529,7 +508,7 @@ static void bd_check_recovery_key(void)
 	/* power key pressed 2.5s and gpio event detected */
 	if (i >= 2500 && pin_status) {
 		printf("\nenter recovery mode (wipe_data)\n");
-		onewire_set_backlight(80);
+		// onewire_set_backlight(80);
 		bd_set_recovery_wipe_data();
 		run_command("setenv initrd_name ramdisk-recovery.img; boot", 0);
 	}
@@ -574,7 +553,6 @@ int board_init(void)
 {
 	bd_hwrev_init();
 	bd_bootdev_init();
-	bd_onewire_init();
 
 	bd_backlight_off();
 

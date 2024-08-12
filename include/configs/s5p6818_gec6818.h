@@ -175,16 +175,12 @@
 /*-----------------------------------------------------------------------
  * BACKLIGHT
  */
-#define CONFIG_ONEWIRE			1
-
-#ifndef CONFIG_ONEWIRE
 /* fallback to pwm */
 #define CONFIG_BACKLIGHT_CH		0
 #define CONFIG_BACKLIGHT_DIV		0
 #define CONFIG_BACKLIGHT_INV		0
 #define CONFIG_BACKLIGHT_DUTY		50
 #define CONFIG_BACKLIGHT_HZ		1000
-#endif
 
 /*-----------------------------------------------------------------------
  * SD/MMC
