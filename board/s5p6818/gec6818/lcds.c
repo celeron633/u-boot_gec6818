@@ -93,6 +93,12 @@ static void hd700_gpio_init(void)
 	hd101_gpio_init();
 }
 
+static void at070tn92_gpio_init(void)
+{
+	printf("at070tn92_gpio_init\r\n");
+	s70_gpio_init();
+}
+
 /* NXP display configs for supported LCD */
 
 static struct nxp_lcd wxga_hd900 = {
@@ -658,6 +664,33 @@ static struct nxp_lcd hdmi_def = {
 	},
 };
 
+static struct nxp_lcd at070tn92 = {
+	.width = 800,
+	.height = 480,
+	.p_width = 155,
+	.p_height = 93,
+	.bpp = 24,
+	.freq = 61,
+
+	.timing = {
+		.h_fp = 80,
+		.h_bp = 36,
+		.h_sw = 10,
+		.v_fp = 22,
+		.v_fpe = 1,
+		.v_bp = 15,
+		.v_bpe = 1,
+		.v_sw = 8,
+	},
+	.polarity = {
+		.rise_vclk = 0,
+		.inv_hsync = 1,
+		.inv_vsync = 1,
+		.inv_vden = 0,
+	},
+	.gpio_init = at070tn92_gpio_init,
+};
+
 static struct hdmi_config {
 	char *name;
 	int width;
@@ -713,6 +746,7 @@ static struct {
 	{  39, "K101",	&wxga_hd101,   0, 1, LCD_VESA },
 	{   3, "S70",	&wvga_s70,   128, 1, LCD_RGB  },
 	{  36, "S701",	&wvga_s70,   128, 1, LCD_RGB  },
+	{  37, "AT070",	&at070tn92,   128, 1, LCD_RGB  },
 	{  24, "S702",	&wvga_s702,  128, 3, LCD_RGB  },
 	{  26, "S70D",	&wvga_s70d,  128, 0, LCD_RGB  },
 	{  14, "H43",	&hvga_h43,     0, 0, LCD_RGB  },

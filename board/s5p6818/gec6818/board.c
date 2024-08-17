@@ -240,6 +240,9 @@ static void bd_lcd_init(void)
 	 *  0: bad
 	 * >0: identified */
 
+	// TODO: set screen from env
+	// 37: at070tn92's id
+	id = 37;
 	ret = bd_setup_lcd_by_id(id);
 	if (id <= 0 || ret != id) {
 		printf("Panel: N/A (%d)\n", id);
