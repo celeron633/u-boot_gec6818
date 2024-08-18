@@ -45,6 +45,10 @@
 		status = "okay";
 	};
 
+	gmac:ethernet@c0060000 {
+		status = "okay";
+	};
+
 	ehci:usbhost@c0030000 {
 		status = "okay";
 	};

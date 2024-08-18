@@ -13,6 +13,8 @@
 
 #include <linux/sizes.h>
 
+#define DEBUG
+
 /*-----------------------------------------------------------------------
  *  u-boot-2016.01
  */
@@ -264,6 +266,25 @@
 #define CONFIG_FIT_BEST_MATCH
 #define CONFIG_OF_LIBFDT
 #define CONFIG_OF_BOARD_SETUP
+
+
+
+/*-----------------------------------------------------------------------
+ * GMAC & PHY
+ */
+#define CONFIG_PHYLIB
+#define CONFIG_ETH_DESIGNWARE
+#define CONFIG_PHY_REALTEK
+#define CONFIG_ETHPRIME			"RTL8211"
+
+#define CONFIG_PHY_RESET_DELAY		10000       /* in usec */
+#define CONFIG_DW_ALTDESCRIPTOR
+#define CONFIG_DW_SEARCH_PHY
+#define CONFIG_DW_AUTONEG
+#define CONFIG_PHY_GIGE			/* Include GbE speed/duplex detection */
+#define CONFIG_PHY_DYNAMIC_ANEG		1
+#define CONFIG_MII
+#define CONFIG_CMD_MII
 
 /*-----------------------------------------------------------------------
  * VIDEO
