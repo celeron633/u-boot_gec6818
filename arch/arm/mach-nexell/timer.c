@@ -201,14 +201,14 @@ unsigned long get_timer_masked(void)
 	/* save last */
 	lastdec = now;
 
-	debug("now=%lu, last=%lu, timestamp=%lu\n", now, lastdec, timestamp);
+	// debug("now=%lu, last=%lu, timestamp=%lu\n", now, lastdec, timestamp);
 	return (unsigned long)timestamp;
 }
 
 void __udelay(unsigned long usec)
 {
 	unsigned long tmo, tmp;
-	debug("+udelay=%ld\n", usec);
+	// debug("+udelay=%ld\n", usec);
 
 	if (!timerinit)
 		timer_init();
@@ -227,7 +227,7 @@ void __udelay(unsigned long usec)
 	}
 
 	tmp = get_timer_masked();	/* get current timestamp */
-	debug("A. tmo=%ld, tmp=%ld\n", tmo, tmp);
+	// debug("A. tmo=%ld, tmp=%ld\n", tmo, tmp);
 
 	if (tmp > (tmo + tmp + 1))	/* if setting this fordward will roll
 					   time stamp */
@@ -237,13 +237,13 @@ void __udelay(unsigned long usec)
 		tmo += tmp;		/* else, set advancing stamp wake up
 					   time */
 
-	debug("B. tmo=%ld, tmp=%ld\n", tmo, tmp);
+	// debug("B. tmo=%ld, tmp=%ld\n", tmo, tmp);
 
 	/* loop till event */
 	do {
 		tmp = get_timer_masked();
 	} while (tmo > tmp);
-	debug("-udelay=%ld\n", usec);
+	// debug("-udelay=%ld\n", usec);
 	return;
 }
 
