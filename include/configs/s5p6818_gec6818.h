@@ -314,6 +314,12 @@
 #define CONFIG_ROOT_PART		2
 
 /*-----------------------------------------------------------------------
+ * NET
+ */
+#define CONFIG_CMD_DHCP
+#define CONFIG_CMD_PING
+
+/*-----------------------------------------------------------------------
  * ENV
  */
 #define CONFIG_SYS_EXTRA_ENV_RELOC
