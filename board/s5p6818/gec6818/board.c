@@ -85,21 +85,22 @@ int board_eth_init(bd_t *bis)
         nx_gpio_set_pad_function(gpio_e,20,1);
         nx_gpio_set_pad_function(gpio_e,21,1);
         nx_gpio_set_pad_function(gpio_e,22,1);
+        nx_gpio_set_pad_function(gpio_e,24,1);
 
 		// 换成gpio_e,24 网卡灯会闪, 依旧没有数据包发出 
 		// 对应内核#define	CFG_ETHER_GMAC_PHY_RST_NUM				(PAD_GPIO_E + 22)
-        nx_gpio_set_output_value(gpio_e,22, 1);
-        nx_gpio_set_output_enable(gpio_e,22, 1);
+        nx_gpio_set_output_value(gpio_e,24, 1);
+        nx_gpio_set_output_enable(gpio_e,24, 1);
  
         udelay(100);
  
-        nx_gpio_set_output_value(gpio_e,22, 0);
-        nx_gpio_set_output_enable(gpio_e,22, 1);
+        nx_gpio_set_output_value(gpio_e,24, 0);
+        nx_gpio_set_output_enable(gpio_e,24, 1);
  
         udelay(100);
        
-        nx_gpio_set_output_value(gpio_e,22, 1);
-        nx_gpio_set_output_enable(gpio_e,22, 1);
+        nx_gpio_set_output_value(gpio_e,24, 1);
+        nx_gpio_set_output_enable(gpio_e,24, 1);
  
         if (designware_initialize(CONFIG_DWCGMAC_BASE, interface) >= 0)
         	num++;
