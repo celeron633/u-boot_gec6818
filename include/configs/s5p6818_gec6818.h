@@ -276,6 +276,9 @@
 #define CONFIG_ETH_DESIGNWARE
 #define CONFIG_PHY_REALTEK
 #define CONFIG_ETHPRIME			"RTL8211"
+/* 对应内核static struct plat_stmmacenet_data nxpmac_plat_data = {
+    .phy_addr = 4, */
+#define CONFIG_PHY_ADDR	4
 
 #define CONFIG_PHY_RESET_DELAY		10000       /* in usec */
 #define CONFIG_DW_ALTDESCRIPTOR

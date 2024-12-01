@@ -45,6 +45,7 @@ static int nexell_gmac_initialize(void)
 	rate = clk_set_rate(clk, 125000000);
 	clk_enable(clk);
 
+	// 这里可能有bug, 打印出来是0
 	debug("rate: %u\n", rate);
 
 	/* Reset control */
