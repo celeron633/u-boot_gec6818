@@ -272,8 +272,8 @@
 /*-----------------------------------------------------------------------
  * GMAC & PHY
  */
-// #define CONFIG_PHYLIB
-// #define CONFIG_ETH_DESIGNWARE
+#define CONFIG_PHYLIB
+#define CONFIG_ETH_DESIGNWARE
 #define CONFIG_PHY_REALTEK
 #define CONFIG_ETHPRIME			"RTL8211"
 

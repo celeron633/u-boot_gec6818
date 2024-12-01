@@ -55,48 +55,6 @@ static int nexell_gmac_initialize(void)
 }
 #endif /* CONFIG_ARCH_NEXELL */
 
-#if defined(CONFIG_TARGET_GEC6818)
-
-enum gpio_group {
-	gpio_a, gpio_b, gpio_c, gpio_d, gpio_e,
-};
-
-void gec6818_phy_init(void)
-{
-	debug("gec6818_phy_init begin\r\n");
-
-	// 下面这一组pinctrl其实已经做了
-	nx_gpio_set_pad_function(gpio_e, 7, 1);
-	nx_gpio_set_pad_function(gpio_e, 8, 1);
-	nx_gpio_set_pad_function(gpio_e, 9, 1);
-	nx_gpio_set_pad_function(gpio_e, 10, 1);
-	nx_gpio_set_pad_function(gpio_e, 11, 1);
-	nx_gpio_set_pad_function(gpio_e, 14, 1);
-	nx_gpio_set_pad_function(gpio_e, 15, 1);
-	nx_gpio_set_pad_function(gpio_e, 16, 1);
-	nx_gpio_set_pad_function(gpio_e, 17, 1);
-	nx_gpio_set_pad_function(gpio_e, 18, 1);
-	nx_gpio_set_pad_function(gpio_e, 20, 1);
-	nx_gpio_set_pad_function(gpio_e, 21, 1);
-
-	// phy的rst引脚
-	nx_gpio_set_pad_function(gpio_e, 22, 1);
-	nx_gpio_set_output_value(gpio_e, 22, 1);
-	nx_gpio_set_output_enable(gpio_e, 22, 1);
-
-	udelay(100);
-	nx_gpio_set_output_value(gpio_e, 22, 0);
-	nx_gpio_set_output_enable(gpio_e, 22, 1);
-
-	udelay(100);
-	nx_gpio_set_output_value(gpio_e, 22, 1);
-	nx_gpio_set_output_enable(gpio_e, 22, 1);
-
-	debug("gec6818_phy_init end\r\n");
-}
-
-#endif /* CONFIG_TARGET_GEC6818 */
-
 static int dw_mdio_read(struct mii_dev *bus, int addr, int devad, int reg)
 {
 	struct eth_mac_regs *mac_p = bus->priv;
@@ -668,10 +626,6 @@ static int designware_eth_probe(struct udevice *dev)
 	u32 iobase = pdata->iobase;
 	ulong ioaddr;
 	int ret;
-
-#if defined(CONFIG_TARGET_GEC6818)
-	gec6818_phy_init();
-#endif /* CONFIG_TARGET_GEC6818 */
 
 #if defined(CONFIG_ARCH_NEXELL)
 	if (fdt_node_check_compatible(gd->fdt_blob, dev->of_offset,
