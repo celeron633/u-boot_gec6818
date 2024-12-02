@@ -379,7 +379,6 @@ static int _dw_eth_send(struct dw_eth_dev *priv, void *packet, int length)
 
 	/* Start the transmission */
 	writel(POLL_DATA, &dma_p->txpolldemand);
-	debug("_dw_eth_send done\r\n");
 
 	return 0;
 }
