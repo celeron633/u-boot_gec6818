@@ -71,7 +71,7 @@ int ext4fs_devread(lbaint_t sector, int byte_offset, int byte_len, char *buf)
 	sector += byte_offset >> log2blksz;
 	byte_offset &= ext4fs_block_dev_desc->blksz - 1;
 
-	debug(" <" LBAFU ", %d, %d>\n", sector, byte_offset, byte_len);
+	// debug(" <" LBAFU ", %d, %d>\n", sector, byte_offset, byte_len);
 
 	if (byte_offset != 0) {
 		int readlen;
