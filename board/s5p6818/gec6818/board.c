@@ -229,6 +229,7 @@ static void bd_bootdev_init(void)
 	rst &= (1 << 19) | (1 << 3);
 	if (rst == MMC_BOOT_CH0) {
 		/* mmc dev 1 for SD boot */
+		printf("SD boot\n");
 		mmc_boot_dev = 1;
 	}
 }
@@ -245,6 +246,7 @@ static void bd_lcd_init(void)
 
 	// TODO: set screen from env
 	// 37: at070tn92's id
+	// 先写死37
 	id = 37;
 	ret = bd_setup_lcd_by_id(id);
 	if (id <= 0 || ret != id) {
@@ -335,6 +337,7 @@ static void set_dtb_name(void)
 	// TODO: kernel dtb name, pass to kernel
 	snprintf(info, ARRAY_SIZE(info),
 			"s5p6818-gec6818-rev%02x.dtb", get_board_rev());
+	printf("dtb_name: %s\n", info);
 	setenv("dtb_name", info);
 }
 
@@ -421,131 +424,6 @@ __exit:
 		saveenv();
 }
 
-static int bd_set_recovery_wipe_data(void)
-{
-	char devpart[64] = { 0, };
-	block_dev_desc_t *desc;
-	disk_partition_t info;
-	int rootdev, miscpart, blkcnt, ret;
-	struct bootloader_message *bmsg;
-	ALLOC_CACHE_ALIGN_BUFFER(u8, buf,
-			DIV_ROUND_UP(sizeof(struct bootloader_message),
-				1024) * 1024);
-	const char *bootargs = getenv("bootargs");
-
-	if (!strstr(bootargs, "androidboot."))
-		return -1;
-
-	rootdev = getenv_ulong("rootdev", 0, CONFIG_ROOT_DEV);
-	miscpart = getenv_ulong("miscpart", 0, 6);
-	snprintf(devpart, ARRAY_SIZE(devpart), "%d:%d", rootdev, miscpart);
-
-	ret = get_device_and_partition("mmc", devpart, &desc, &info, 0);
-
-	/* Android misc partition should be 4MB */
-	if (ret < 0 || info.size > 8192)
-		return -1;
-
-	blkcnt = DIV_ROUND_UP(sizeof(struct bootloader_message), 1024) * 2;
-	ret = desc->block_read(rootdev, info.start, blkcnt, buf);
-	if (ret != blkcnt)
-		return -1;
-
-	bmsg = (struct bootloader_message *)buf;
-	if (strlen(bmsg->command) > 0)
-		return 0;
-
-	strcpy(bmsg->command, "boot-recovery");
-	bmsg->status[0] = 0;
-	strcpy(bmsg->recovery, "recovery\n--wipe_data");
-
-	ret = desc->block_write(rootdev, info.start, blkcnt, buf);
-	if (ret != blkcnt) {
-		printf("Error setting bootloader message\n");
-		return -1;
-	}
-
-	return 1;
-}
-
-static void bd_check_recovery_key(void)
-{
-	int alive_0, pin_status;
-	int i;
-
-	if (getenv_yesno("recovery_check") != 1)
-		return;
-
-#define SCR_ALIVEGPIOINPUTVALUE	(SCR_ALIVE_BASE + 0x11C)
-	alive_0 = readl(SCR_ALIVEGPIOINPUTVALUE) & 1;
-
-	/* GPIOB27 (hp-det) as input */
-	nx_gpio_set_pad_function(gpio_b, 27, 1);
-	nx_gpio_set_output_enable(gpio_b, 27, 0);
-
-	pin_status = nx_gpio_get_input_value(gpio_b, 27);
-	if (alive_0 || !pin_status)
-		return;
-
-	printf("checking recovery key...");
-
-	/* GPIOB12 (status_led) as output */
-	nx_gpio_set_pad_function(gpio_b, 12, 2);
-	nx_gpio_set_output_enable(gpio_b, 12, 1);
-
-	/* detecting falling edge */
-	nx_gpio_set_detect_mode(gpio_b, 27, 0x2);
-	nx_gpio_set_detect_enable(gpio_b, 27, 1);
-
-	for (i = 0; i < 2500; i++) {
-		alive_0 = readl(SCR_ALIVEGPIOINPUTVALUE) & 1;
-		if (alive_0)
-			break;
-
-		mdelay(1);
-		if (i == 500)
-			nx_gpio_set_output_value(gpio_b, 12, 1);
-	}
-
-	nx_gpio_set_output_value(gpio_b, 12, 0);
-	nx_gpio_set_detect_enable(gpio_b, 27, 0);
-	pin_status = nx_gpio_get_detect_status(gpio_b, 27, 1);
-
-	/* power key pressed 2.5s and gpio event detected */
-	if (i >= 2500 && pin_status) {
-		printf("\nenter recovery mode (wipe_data)\n");
-		// onewire_set_backlight(80);
-		bd_set_recovery_wipe_data();
-		run_command("setenv initrd_name ramdisk-recovery.img; boot", 0);
-	}
-
-	printf("none\n");
-	return;
-}
-
-static void bd_check_reset(void)
-{
-	u32 reason;
-
-#define SCR_USER_SIG1_READ		(SCR_ALIVE_BASE + 0x0B4)
-#define SCR_USER_SIG1_RESET		(SCR_ALIVE_BASE + 0x0AC)
-#define RECOVERY_SIGNATURE		(0x52455343)  /* (ASCII) : R.E.S.C */
-#define FASTBOOT_SIGNATURE		(0x46535442)  /* (ASCII) : F.S.T.B */
-
-	reason = readl(SCR_USER_SIG1_READ);
-	debug("signature --> 0x%x\n", reason);
-
-	if (reason == RECOVERY_SIGNATURE) {
-		printf("enter recovery mode\n");
-		writel(0xffffffff, SCR_USER_SIG1_RESET);
-		run_command("setenv initrd_name ramdisk-recovery.img; boot", 0);
-	} else if (reason == FASTBOOT_SIGNATURE) {
-		printf("enter fastboot mode\n");
-		writel(0xffffffff, SCR_USER_SIG1_RESET);
-		run_command("fastboot 0", 0);
-	}
-}
-
 /* --------------------------------------------------------------------------
  * call from u-boot
  */
@@ -589,10 +467,6 @@ int board_late_init(void)
 #endif
 
 	bd_backlight_on();
-	printf("\n");
-
-	bd_check_reset();
-	bd_check_recovery_key();
 
 	return 0;
 }

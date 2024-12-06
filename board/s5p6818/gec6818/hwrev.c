@@ -81,7 +81,8 @@ void bd_hwrev_init(void)
 /* To override __weak symbols */
 u32 get_board_rev(void)
 {
-	return (base_rev << 8) | pcb_rev;
+	// return (base_rev << 8) | pcb_rev;
+	return 1;
 }
 
 const char *get_board_name(void)
