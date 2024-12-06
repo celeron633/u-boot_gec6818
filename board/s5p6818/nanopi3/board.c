@@ -37,6 +37,9 @@
 #include "onewire.h"
 #include "nxp-fb.h"
 
+#include <phy.h>
+#include <netdev.h>
+
 DECLARE_GLOBAL_DATA_PTR;
 
 enum gpio_group {
@@ -723,3 +726,46 @@ int ft_board_setup(void *blob, bd_t *bd)
 	return 0;
 }
 #endif
+
+#define CONFIG_DWCGMAC_BASE     (PHY_BASEADDR_GMAC) 
+int board_eth_init(bd_t *bis)
+{
+#if defined(CONFIG_ETH_DESIGNWARE)
+	u32 interface = PHY_INTERFACE_MODE_RGMII;
+	int num = 0;
+
+	nx_gpio_set_pad_function(gpio_e, 7, 1);
+	nx_gpio_set_pad_function(gpio_e, 8, 1);
+	nx_gpio_set_pad_function(gpio_e, 9, 1);
+	nx_gpio_set_pad_function(gpio_e, 10, 1);
+	nx_gpio_set_pad_function(gpio_e, 11, 1);
+	nx_gpio_set_pad_function(gpio_e, 14, 1);
+	nx_gpio_set_pad_function(gpio_e, 15, 1);
+	nx_gpio_set_pad_function(gpio_e, 16, 1);
+	nx_gpio_set_pad_function(gpio_e, 17, 1);
+	nx_gpio_set_pad_function(gpio_e, 18, 1);
+	nx_gpio_set_pad_function(gpio_e, 20, 1);
+	nx_gpio_set_pad_function(gpio_e, 21, 1);
+	nx_gpio_set_pad_function(gpio_e, 24, 1);
+	nx_gpio_set_output_value(gpio_e, 24, 1);
+	nx_gpio_set_output_enable(gpio_e, 24, 1);
+
+	udelay(100);
+
+	nx_gpio_set_output_value(gpio_e, 24, 0);
+	nx_gpio_set_output_enable(gpio_e, 24, 1);
+
+	udelay(100);
+
+	nx_gpio_set_output_value(gpio_e, 24, 1);
+	nx_gpio_set_output_enable(gpio_e, 24, 1);
+
+	if (designware_initialize(CONFIG_DWCGMAC_BASE, interface) >= 0)
+		num++;
+
+	printf("\nETH_INIT\n");
+	return num;
+#else
+	return -1;
+#endif
+}
