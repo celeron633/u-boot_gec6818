@@ -248,7 +248,7 @@ static int dwmci_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 
 	flags |= (cmd->cmdidx | DWMCI_CMD_START | DWMCI_CMD_USE_HOLD_REG);
 
-	// debug("Sending CMD%d\n",cmd->cmdidx);
+	debug("Sending CMD%d\n",cmd->cmdidx);
 
 	dwmci_writel(host, DWMCI_CMD, flags);
 
