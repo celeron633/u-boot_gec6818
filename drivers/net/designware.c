@@ -30,32 +30,6 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if defined(CONFIG_ARCH_NEXELL)
-static int nexell_gmac_initialize(void)
-{
-	struct clk *clk;
-	unsigned int rate;
-
-	/* Clock control */
-	clk = clk_get("nx-gmac.0");
-	if (!clk)
-		return 0;
-
-	clk_disable(clk);
-	rate = clk_set_rate(clk, 125000000);
-	clk_enable(clk);
-
-	// 这里可能有bug, 打印出来是0
-	debug("rate: %u\n", rate);
-
-	/* Reset control */
-	nx_rstcon_setrst(RESET_ID_DWC_GMAC, 0);
-	nx_rstcon_setrst(RESET_ID_DWC_GMAC, 1);
-
-	return 0;
-}
-#endif /* CONFIG_ARCH_NEXELL */
-
 static int dw_mdio_read(struct mii_dev *bus, int addr, int devad, int reg)
 {
 	struct eth_mac_regs *mac_p = bus->priv;
@@ -464,6 +438,30 @@ static int dw_phy_init(struct dw_eth_dev *priv, void *dev)
 }
 
 #ifndef CONFIG_DM_ETH
+
+#if defined(CONFIG_ARCH_NEXELL)
+static int nexell_gmac_initialize(void)
+{
+	struct clk *clk;
+	unsigned int rate;
+
+	/* Clock control */
+	clk = clk_get("nx-gmac.0");
+	if (!clk)
+		return 0;
+	clk_disable(clk);
+	rate = clk_set_rate(clk, 125000000);
+	clk_enable(clk);
+	debug("rate: %u\n", rate);
+
+	/* Reset control */
+	nx_rstcon_setrst(RESET_ID_DWC_GMAC, 0);
+	nx_rstcon_setrst(RESET_ID_DWC_GMAC, 1);
+
+	return 0;
+}
+#endif /* CONFIG_ARCH_NEXELL */
+
 static int dw_eth_init(struct eth_device *dev, bd_t *bis)
 {
 	return _dw_eth_init(dev->priv, dev->enetaddr);
@@ -507,7 +505,6 @@ int designware_initialize(ulong base_addr, u32 interface)
 	dev = (struct eth_device *) malloc(sizeof(struct eth_device));
 	if (!dev)
 		return -ENOMEM;
-
 
 #if defined(CONFIG_ARCH_NEXELL)
 	nexell_gmac_initialize();
@@ -631,7 +628,6 @@ static int designware_eth_probe(struct udevice *dev)
 #if defined(CONFIG_ARCH_NEXELL)
 	if (fdt_node_check_compatible(gd->fdt_blob, dev->of_offset,
 			"nexell,nexell-gmac") == 0)
-		// init nexcell gmac clk src and rst control
 		nexell_gmac_initialize();
 #endif /* CONFIG_ARCH_NEXELL */
 
