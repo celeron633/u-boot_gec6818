@@ -224,13 +224,27 @@ int nx_display_fixup_dp(struct nx_display_dev *dp)
 
 static void bd_bootdev_init(void)
 {
-	unsigned int rst = readl(PHY_BASEADDR_CLKPWR + SYSRSTCONFIG);
+	int port_num;
+	int boot_mode = readl(PHY_BASEADDR_CLKPWR + SYSRSTCONFIG);
 
-	rst &= (1 << 19) | (1 << 3);
-	if (rst == MMC_BOOT_CH0) {
-		/* mmc dev 1 for SD boot */
-		printf("SD boot\n");
-		mmc_boot_dev = 1;
+	if ((boot_mode & BOOTMODE_MASK) == BOOTMODE_SDMMC)
+	{
+		port_num = readl(SCR_ARM_SECOND_BOOT_REG1);
+		printf("MMC PORT_NUM: %d\n", port_num);
+		if (port_num == EMMC_PORT_NUM)
+		{
+			printf("EMMC BOOT\n");
+			mmc_boot_dev = 0;
+		}
+		else if (port_num == SD_PORT_NUM)
+		{
+			printf("SD BOOT\n");
+			mmc_boot_dev = 1;
+		}
+	}
+	else if ((boot_mode & BOOTMODE_MASK) == BOOTMODE_USB)
+	{
+		mmc_boot_dev = 0;
 	}
 }
 
