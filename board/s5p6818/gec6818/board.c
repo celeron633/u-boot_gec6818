@@ -435,7 +435,6 @@ int board_early_init_f(void)
 
 int board_init(void)
 {
-	bd_hwrev_init();
 	bd_bootdev_init();
 
 	bd_backlight_off();
