@@ -348,6 +348,7 @@
 		"booti ${loadaddr} ${initrd_addr}:${initrd_size} ${dtb_addr}\0"	\
 	"bootcmd=run mmcboot\0"					\
 	"bootargs=console=ttySAC0,115200n8 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait data=/dev/mmcblk0p3 init=/sbin/init loglevel=7 printk.time=1 consoleblank=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1\0" \
+	"lcdtype=AT070\0" \
 	CONFIG_EXTRA_ENV_BOOT_LOGO
 
 #endif /* __CONFIG_H__ */

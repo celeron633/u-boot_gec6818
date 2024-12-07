@@ -248,34 +248,6 @@ static void bd_bootdev_init(void)
 	}
 }
 
-static void bd_lcd_init(void)
-{
-	struct nxp_lcd *cfg;
-	int id = -1;
-	int ret;
-
-	/* -1: onwire probe failed
-	 *  0: bad
-	 * >0: identified */
-
-	// TODO: set screen from env
-	// 37: at070tn92's id
-	// 先写死37
-	id = 37;
-	ret = bd_setup_lcd_by_id(id);
-	if (id <= 0 || ret != id) {
-		printf("Panel: N/A (%d)\n", id);
-		bd_setup_lcd_by_name("HDMI720P60");
-
-	} else {
-		printf("Panel: %s\n", bd_get_lcd_name());
-
-		cfg = bd_get_lcd();
-		if (cfg->gpio_init)
-			cfg->gpio_init();
-	}
-}
-
 static int mac_read_from_generic_eeprom(u8 *addr)
 {
 	struct udevice *i2c_dev;
@@ -454,7 +426,6 @@ int board_init(void)
 	bd_backlight_off();
 
 	bd_lcd_config_gpio();
-	bd_lcd_init();
 
 #ifdef CONFIG_SILENT_CONSOLE
 	gd->flags |= GD_FLG_SILENT;
