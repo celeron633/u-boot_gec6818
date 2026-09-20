@@ -6,6 +6,8 @@
 # Normal rules
 #
 .*
+!.github/
+!.github/**
 *.o
 *.o.*
 *.a

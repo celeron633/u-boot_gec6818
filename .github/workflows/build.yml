@@ -1,0 +1,61 @@
+name: Build u-boot images
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  TOOLCHAIN_URL: https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-aarch64-none-elf.tar.xz
+  TOOLCHAIN_DIR: arm-gnu-toolchain-13.2.Rel1-x86_64-aarch64-none-elf
+  ARCH: aarch64
+  CROSS_COMPILE: aarch64-none-elf-
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dtc
+        run: sudo apt-get update && sudo apt-get install -y device-tree-compiler
+
+      - name: Cache aarch64-none-elf toolchain
+        id: cache-toolchain
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.TOOLCHAIN_DIR }}
+          key: toolchain-${{ env.TOOLCHAIN_URL }}
+
+      - name: Download toolchain
+        if: steps.cache-toolchain.outputs.cache-hit != 'true'
+        run: curl -L -o toolchain.tar.xz "$TOOLCHAIN_URL" && tar xf toolchain.tar.xz
+
+      - name: Add toolchain to PATH
+        run: echo "$GITHUB_WORKSPACE/$TOOLCHAIN_DIR/bin" >> "$GITHUB_PATH"
+
+      # ARCH/CROSS_COMPILE must be env vars, not `make ARCH=... CROSS_COMPILE=...`
+      # command-line args: config.mk sets `ARCH := $(CONFIG_SYS_ARCH:...)` (plain
+      # assignment), which can override an environment variable but not one set
+      # on the make command line - with the latter you get a stale
+      # `arch/aarch64/...` path instead of the `arch/arm/...` this old
+      # U-Boot (CONFIG_ARM64=y under arch/arm) actually needs.
+      - name: Configure
+        run: make s5p6818_gec6818_defconfig
+
+      - name: Build (u-boot.bin, fip-nonsecure.img)
+        run: make -j"$(nproc)"
+
+      - name: Build u-boot-direct.img
+        run: make u-boot-direct.img
+
+      - name: Collect images
+        run: |
+          mkdir -p out
+          cp u-boot.bin fip-nonsecure.img u-boot-direct.img out/
+
+      - name: Upload images
+        uses: actions/upload-artifact@v4
+        with:
+          name: u-boot-images-${{ github.sha }}
+          path: out/
