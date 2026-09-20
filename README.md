@@ -96,6 +96,54 @@ repo's bl33 (`fip-nonsecure.img`), re-partition with fdisk, and restore
 the rootfs (tar.gz + nc works, sftp too - needs some basic Linux
 familiarity).
 
+### Booting a Linux image (`booti`, TFTP)
+
+This board boots aarch64 Linux with u-boot's `booti` command (the raw
+`Image` format, not `zImage`/`uImage`) - `CONFIG_CMD_BOOTI=y`. The
+default `bootcmd` (`run mmcboot` - see
+`include/configs/s5p6818_gec6818.h`) loads the kernel, dtb, and initrd
+off the eMMC/SD boot partition (`ext4load mmc ${rootdev}:${bootpart} ...`)
+and ends with:
+
+```
+booti ${loadaddr} ${initrd_addr}:${initrd_size} ${dtb_addr}
+```
+
+Default addresses/filenames, from `CONFIG_EXTRA_ENV_SETTINGS`:
+
+| env var | default | what |
+|---|---|---|
+| `loadaddr` | `0x40080000` | where the kernel `Image` gets loaded |
+| `dtb_addr` | `0x49000000` | where the device tree gets loaded |
+| `initrd_addr` | `0x48000000` | where the initrd gets loaded |
+| `kernel` | `Image` | kernel filename on the boot partition |
+| `dtb_name` | `s5p6818-gec6818-rev01.dtb` | dtb filename on the boot partition |
+
+**Booting over TFTP instead** - useful for iterating on a kernel build
+without reflashing eMMC/SD every time. `CONFIG_CMD_NET`/`CONFIG_CMD_DHCP`
+are enabled, and the designware GMAC just works (`CONFIG_ETH_DESIGNWARE=y`):
+
+```sh
+dhcp                               # or: setenv ipaddr ...; setenv serverip ...
+tftpboot ${loadaddr} Image
+tftpboot ${dtb_addr} s5p6818-gec6818-rev01.dtb
+booti ${loadaddr} - ${dtb_addr}    # "-" = no initrd
+```
+
+With an initrd too:
+
+```sh
+tftpboot ${initrd_addr} ramdisk.img
+setenv initrd_size 0x${filesize}
+booti ${loadaddr} ${initrd_addr}:${initrd_size} ${dtb_addr}
+```
+
+Both reuse the same `${loadaddr}`/`${dtb_addr}`/`${initrd_addr}` the
+normal eMMC/SD boot uses, so nothing needs picking addresses by hand.
+`bootargs` (console, root device, etc.) still applies either way - set
+it before `booti` if you need it to point somewhere other than the
+default (`root=/dev/mmcblk0p2`).
+
 ### Status
 
 - [x] Boots, runs Linux
@@ -199,6 +247,50 @@ https://github.com/celeron633/sd-fuse_s5p6818/blob/master/update-bl33.sh
 （`fip-secure.img`）（bl1 在 ARM ATF 里的概念是芯片上面的 bootrom，名字有点绕），
 以及本仓库编译出来的 bl33（`fip-nonsecure.img`），再用 fdisk 重新分区，重新恢复
 rootfs（我用的 targz+nc，也可以用 sftp 等等），需要一定 Linux 操作基础。
+
+### 启动 Linux 镜像（`booti`、TFTP）
+
+这块板子用 u-boot 的 `booti` 命令启动 aarch64 Linux（走的是裸 `Image` 格式，不是
+`zImage`/`uImage`）——`CONFIG_CMD_BOOTI=y`。默认的 `bootcmd`（即 `run mmcboot`，
+见 `include/configs/s5p6818_gec6818.h`）从 EMMC/SD 的 boot 分区
+（`ext4load mmc ${rootdev}:${bootpart} ...`）加载内核、dtb、initrd，最后跑：
+
+```
+booti ${loadaddr} ${initrd_addr}:${initrd_size} ${dtb_addr}
+```
+
+默认地址/文件名（来自 `CONFIG_EXTRA_ENV_SETTINGS`）：
+
+| 环境变量 | 默认值 | 作用 |
+|---|---|---|
+| `loadaddr` | `0x40080000` | 内核 `Image` 加载到哪 |
+| `dtb_addr` | `0x49000000` | 设备树加载到哪 |
+| `initrd_addr` | `0x48000000` | initrd 加载到哪 |
+| `kernel` | `Image` | boot 分区上的内核文件名 |
+| `dtb_name` | `s5p6818-gec6818-rev01.dtb` | boot 分区上的 dtb 文件名 |
+
+**改用 TFTP 启动**——调试内核不用每次都重新烧 EMMC/SD 的时候有用。
+`CONFIG_CMD_NET`/`CONFIG_CMD_DHCP` 都开着，板载的 designware GMAC 网口直接能用
+（`CONFIG_ETH_DESIGNWARE=y`）：
+
+```sh
+dhcp                               # 或者手动 setenv ipaddr ...; setenv serverip ...
+tftpboot ${loadaddr} Image
+tftpboot ${dtb_addr} s5p6818-gec6818-rev01.dtb
+booti ${loadaddr} - ${dtb_addr}    # "-" 表示不带 initrd
+```
+
+带 initrd 的话：
+
+```sh
+tftpboot ${initrd_addr} ramdisk.img
+setenv initrd_size 0x${filesize}
+booti ${loadaddr} ${initrd_addr}:${initrd_size} ${dtb_addr}
+```
+
+用的都是正常 EMMC/SD 启动同一套 `${loadaddr}`/`${dtb_addr}`/`${initrd_addr}`，
+不用自己挑地址。`bootargs`（console、root 设备等）两种方式都一样生效——如果要改成
+默认（`root=/dev/mmcblk0p2`）以外的东西，`booti` 之前先设好。
 
 ### 开发进度
 
