@@ -915,16 +915,19 @@ fip-nonsecure.img: fip-nonsecure.bin $(NSIH)
 	$(Q)$(BINGEN) -c S5P6818 -t 3rdboot $(BINGEN_FLAGS) -i $< -o $@
 
 # For BL1 SKIP_ATF direct boot (bl1-gec6818 skips fip-loader.img/
-# fip-secure.img entirely and jumps straight at the 3rd-stage image it
-# finds at its DEVICEADDR offset). Unlike fip-nonsecure.img above, this
-# is NOT a FIP container (fip_create wraps u-boot.bin in a TOC that BL1
-# doesn't understand) - it's u-boot.bin directly wrapped in an NSIH
-# header, with a real (non-dummy) entry address so BL1's plain branch
-# actually lands on u-boot's reset vector instead of address 0.
+# fip-secure.img entirely and loads the 3rd-stage image it finds at its
+# DEVICEADDR offset). Unlike fip-nonsecure.img above, this is NOT a FIP
+# container (fip_create wraps u-boot.bin in a TOC that BL1 doesn't
+# understand) - it's u-boot.bin directly wrapped in an NSIH header.
+# BL1 puts the 0x400-byte header at LoadAddr and the payload right after
+# it, so LoadAddr = CONFIG_SYS_TEXT_BASE - 0x400 lands u-boot.bin exactly
+# at its link address, which is also the entry point.
+DIRECT_LOADADDR = $(shell printf '0x%x' $$(($(CONFIG_SYS_TEXT_BASE) - 0x400)))
+
 u-boot-direct.img: u-boot.bin $(NSIH) tools
 	@echo "Creating \"$@\" (<-- $(NSIH), direct BL1 boot, no ATF)"
-	$(Q)$(BINGEN) -c S5P6818 -t 3rdboot -l 0x7df00000 -e 0x7df00000 \
-		-n $(NSIH) -i $< -o $@
+	$(Q)$(BINGEN) -c S5P6818 -t 3rdboot -l $(DIRECT_LOADADDR) \
+		-e $(CONFIG_SYS_TEXT_BASE) -n $(NSIH) -i $< -o $@
 
 endif
 
