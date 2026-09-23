@@ -278,7 +278,8 @@ unsigned long long get_ticks(void)
 	return get_timer_masked();
 }
 
-#if defined(CONFIG_ARCH_S5P4418)
+/* AArch64 builds get it from the generic timer (armv8/generic_timer.c) */
+#if !defined(CONFIG_ARM64)
 ulong get_tbclk(void)
 {
 	ulong  tbclk = TIMER_FREQ;

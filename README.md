@@ -63,6 +63,25 @@ make -j"$(nproc)"          # -> u-boot.bin, fip-nonsecure.img
 make u-boot-direct.img     # -> for bl1-gec6818's SKIP_ATF mode
 ```
 
+**32-bit (AArch32) u-boot**, for bl1-gec6818 built with
+`OPMODE=aarch32 SKIP_ATF=y UBOOT_ARCH=aarch32` (the whole chain stays in
+AArch32, secure SVC - e.g. for an old 32-bit kernel). Tested with Linaro
+GCC 7.5 (`gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi`). Run
+`make distclean` when switching between the 32- and 64-bit builds:
+
+```sh
+export PATH=~/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi/bin:$PATH
+export ARCH=arm
+export CROSS_COMPILE=arm-linux-gnueabi-
+make s5p6818_gec6818_aarch32_defconfig
+make -j"$(nproc)"
+make u-boot-direct.img     # the only image that makes sense for 32-bit
+```
+
+The 32-bit build boots kernels with `bootz` (`kernel=zImage`,
+`loadaddr=0x40008000`) instead of `booti`; the rest of the environment is
+the same. It only runs in bl1-gec6818's emulator so far, not on hardware.
+
 GitHub Actions builds both `fip-nonsecure.img` and `u-boot-direct.img`
 on every push and uploads them as a workflow artifact - see the badge
 above, or `.github/workflows/build.yml`.
@@ -220,6 +239,23 @@ make s5p6818_gec6818_defconfig
 make -j"$(nproc)"          # -> u-boot.bin, fip-nonsecure.img
 make u-boot-direct.img     # -> 给 bl1-gec6818 的 SKIP_ATF 模式用
 ```
+
+**32 位（AArch32）u-boot**，配合用 `OPMODE=aarch32 SKIP_ATF=y UBOOT_ARCH=aarch32`
+编译的 bl1-gec6818 使用（整条链都停留在 AArch32 安全态 SVC 模式，比如用来启动老的
+32 位内核）。用 Linaro GCC 7.5（`gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi`）
+测过。32 位和 64 位之间切换时先 `make distclean`：
+
+```sh
+export PATH=~/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi/bin:$PATH
+export ARCH=arm
+export CROSS_COMPILE=arm-linux-gnueabi-
+make s5p6818_gec6818_aarch32_defconfig
+make -j"$(nproc)"
+make u-boot-direct.img     # 32 位只有这个镜像有意义
+```
+
+32 位版本用 `bootz` 启动内核（`kernel=zImage`、`loadaddr=0x40008000`），不是
+`booti`；其余环境变量和 64 位一样。目前只在 bl1-gec6818 的模拟器里跑过，还没上板。
 
 每次 push，GitHub Actions 会把 `fip-nonsecure.img` 和 `u-boot-direct.img` 都编译好，
 打包成 workflow artifact 上传——看上面的徽章，或者 `.github/workflows/build.yml`。

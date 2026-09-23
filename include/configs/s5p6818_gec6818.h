@@ -16,7 +16,12 @@
 /*-----------------------------------------------------------------------
  *  u-boot-2016.01
  */
+#ifdef CONFIG_S5P6818_AARCH32
+/* 32-bit u-boot, see CONFIG_S5P6818_AARCH32 */
+#define CONFIG_SYS_LDSCRIPT	"arch/arm/cpu/armv7/s5p4418/u-boot.lds"
+#else
 #define CONFIG_SYS_LDSCRIPT	"arch/arm/cpu/armv8/u-boot.lds"
+#endif
 
 #define CONFIG_MACH_S5P6818	1
 
@@ -322,14 +327,27 @@
 	"fb_addr=\0"						\
 	CONFIG_EXTRA_ENV_DTB_RESERVE
 
+#ifdef CONFIG_S5P6818_AARCH32
+#define CONFIG_CMD_BOOTZ
+#define CONFIG_ENV_NO_RELOC		"0xffffffff"
+#define CONFIG_ENV_KERNEL		"zImage"
+#define CONFIG_ENV_KERNEL_ADDR		"0x40008000"
+#define CONFIG_ENV_BOOT_CMD		"bootz"
+#else
+#define CONFIG_ENV_NO_RELOC		"0xffffffffffffffff"
+#define CONFIG_ENV_KERNEL		"Image"
+#define CONFIG_ENV_KERNEL_ADDR		"0x40080000"
+#define CONFIG_ENV_BOOT_CMD		"booti"
+#endif
+
 #define CONFIG_EXTRA_ENV_SETTINGS				\
-	"fdt_high=0xffffffffffffffff\0"				\
-	"initrd_high=0xffffffffffffffff\0"			\
+	"fdt_high=" CONFIG_ENV_NO_RELOC "\0"			\
+	"initrd_high=" CONFIG_ENV_NO_RELOC "\0"			\
 	"rootdev=" __stringify(CONFIG_ROOT_DEV) "\0"		\
 	"rootpart=" __stringify(CONFIG_ROOT_PART) "\0"		\
 	"bootpart=" __stringify(CONFIG_BOOT_PART) "\0"		\
-	"kernel=Image\0"					\
-	"loadaddr=0x40080000\0"					\
+	"kernel=" CONFIG_ENV_KERNEL "\0"				\
+	"loadaddr=" CONFIG_ENV_KERNEL_ADDR "\0"			\
 	"dtb_name=s5p6818-gec6818-rev01.dtb\0"			\
 	"dtb_addr=" __stringify(CONFIG_KERNEL_DTB_ADDR) "\0"	\
 	"initrd_name=ramdisk.img\0"				\
@@ -345,7 +363,7 @@
 		"setenv initrd_size 0x${filesize}\0"		\
 	"mmcboot="						\
 		"run load_kernel; run load_initrd; run load_dtb; "	\
-		"booti ${loadaddr} ${initrd_addr}:${initrd_size} ${dtb_addr}\0"	\
+		CONFIG_ENV_BOOT_CMD " ${loadaddr} ${initrd_addr}:${initrd_size} ${dtb_addr}\0"	\
 	"bootcmd=run mmcboot\0"					\
 	"bootargs=console=ttySAC0,115200n8 root=/dev/mmcblk0p2 rootfstype=ext4 rootwait data=/dev/mmcblk0p3 init=/sbin/init loglevel=7 printk.time=1 consoleblank=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1\0" \
 	"lcdtype=AT070\0" \

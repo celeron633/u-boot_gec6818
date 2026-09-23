@@ -15,6 +15,13 @@ config NEXELL_ARMV8_COMMON
 	select ARMV8_MULTIENTRY
 	select NEXELL_COMMON
 
+config S5P6818_AARCH32
+	bool "Build for S5P6818 running in AArch32"
+	help
+	  32-bit u-boot for the S5P6818: the Cortex-A53 cores stay in
+	  AArch32 (secure SVC) as BL1 leaves them, e.g. to boot an old
+	  32-bit kernel. Needs a BL1 built with OPMODE=aarch32 UBOOT_ARCH=aarch32.
+
 choice
 	prompt "Nexell SoC select"
 	optional
@@ -25,7 +32,8 @@ config ARCH_S5P4418
 
 config ARCH_S5P6818
 	bool "Nexell S5P6818 family"
-	select NEXELL_ARMV8_COMMON
+	select NEXELL_ARMV8_COMMON if !S5P6818_AARCH32
+	select NEXELL_ARMV7_COMMON if S5P6818_AARCH32
 
 endchoice
 

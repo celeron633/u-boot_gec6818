@@ -12,7 +12,7 @@ config SYS_CONFIG_NAME
 config S5P6818_FEATURES
 	bool
 	default y
-	select ARM64
+	select ARM64 if !S5P6818_AARCH32
 
 endif
 
