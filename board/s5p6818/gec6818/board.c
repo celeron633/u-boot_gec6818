@@ -572,33 +572,36 @@ int board_eth_init(bd_t *bis)
 {
 	printf("board_eth_init\r\n");
 #if defined(CONFIG_ETH_DESIGNWARE)
+	static const u8 gmac_pins[] = {
+		7, 8, 9, 10, 11, 14, 15, 16, 17, 18, 19, 20, 21, 24,
+	};
 	u32 interface = PHY_INTERFACE_MODE_RGMII;
 	int num = 0;
+	int i;
 
-	nx_gpio_set_pad_function(gpio_e, 7, 1);
-	nx_gpio_set_pad_function(gpio_e, 8, 1);
-	nx_gpio_set_pad_function(gpio_e, 9, 1);
-	nx_gpio_set_pad_function(gpio_e, 10, 1);
-	nx_gpio_set_pad_function(gpio_e, 11, 1);
-	nx_gpio_set_pad_function(gpio_e, 14, 1);
-	nx_gpio_set_pad_function(gpio_e, 15, 1);
-	nx_gpio_set_pad_function(gpio_e, 16, 1);
-	nx_gpio_set_pad_function(gpio_e, 17, 1);
-	nx_gpio_set_pad_function(gpio_e, 18, 1);
-	nx_gpio_set_pad_function(gpio_e, 20, 1);
-	nx_gpio_set_pad_function(gpio_e, 21, 1);
-	nx_gpio_set_pad_function(gpio_e, 24, 1);
+	/*
+	 * Same pad setup as the kernel's gmac_pins (s5p6818-pinctrl.dtsi):
+	 * TXD0-3 E7-10, TXEN E11, RXD0-3 E14-17, RXCLK E18, RXDV E19,
+	 * MDC E20, MDIO E21 at STR3, GTX_CLK E24 at STR2, no pulls.
+	 * The drive strength only takes effect with its DISABLE_DEFAULT bit
+	 * set, otherwise the pad keeps its reset default strength.
+	 */
+	for (i = 0; i < ARRAY_SIZE(gmac_pins); i++) {
+		int pin = gmac_pins[i];
 
-	nx_gpio_set_output_value(gpio_e, 24, 1);
-	nx_gpio_set_output_enable(gpio_e, 24, 1);
-	udelay(100);
+		nx_gpio_set_pad_function(gpio_e, pin, 1);
+		nx_gpio_set_pull_mode(gpio_e, pin, nx_gpio_pull_off);
+		nx_gpio_set_drive_strength_disable_default(gpio_e, pin, 1);
+		nx_gpio_set_drive_strength(gpio_e, pin, pin == 24 ? 2 : 3);
+	}
 
-	nx_gpio_set_output_value(gpio_e, 24, 0);
-	nx_gpio_set_output_enable(gpio_e, 24, 1);
-	udelay(100);
-
-	nx_gpio_set_output_value(gpio_e, 24, 1);
-	nx_gpio_set_output_enable(gpio_e, 24, 1);
+	/* PHY reset: GPIOE22, active low (snps,reset-gpio in the kernel dts) */
+	nx_gpio_set_pad_function(gpio_e, 22, 0);
+	nx_gpio_set_output_value(gpio_e, 22, 0);
+	nx_gpio_set_output_enable(gpio_e, 22, 1);
+	mdelay(10);
+	nx_gpio_set_output_value(gpio_e, 22, 1);
+	mdelay(30);
 
 	if (designware_initialize(CONFIG_DWCGMAC_BASE, interface) >= 0)
 		num++;
